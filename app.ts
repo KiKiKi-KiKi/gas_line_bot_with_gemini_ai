@@ -5,6 +5,8 @@ const CHANNEL_TOKEN =
 
 // API Endpoint
 const LINE_REPLY_API = 'https://api.line.me/v2/bot/message/reply';
+// ref. https://developers.line.biz/ja/reference/messaging-api/#display-a-loading-indicator
+const LINE_CHAT_LOADING_API = 'https://api.line.me/v2/bot/chat/loading/start';
 
 function doPost(e) {
   const json = JSON.parse(e.postData.contents);
@@ -14,9 +16,15 @@ function doPost(e) {
   const messageId = json.events[0].message.id;
   const messageType = json.events[0].message.type;
   const messageText = json.events[0].message.text;
+  const userID = json.events[0]?.source.userId;
 
   if ( !replyToken || typeof replyToken === 'undefined' ) {
     return;
+  }
+
+  // Show Loading
+  if (userID) {
+    showLoading({ userID });
   }
 
   // :parrot: Reply
@@ -41,3 +49,19 @@ function doPost(e) {
 
   return;
 }
+
+const showLoading = ({ userID }) => {
+  const option = {
+    'headers': {
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': 'Bearer ' + CHANNEL_TOKEN,
+    },
+    'method': 'post',
+    'payload': JSON.stringify({
+      'chatId': userID,
+      'loadingSeconds': 60,
+    }),
+  };
+
+  UrlFetchApp.fetch(LINE_CHAT_LOADING_API, option);
+};
