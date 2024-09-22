@@ -1,5 +1,9 @@
 # LINE BOT with GAS + Gemini AI
 
+### :construction: How to setup
+
+https://zenn.dev/kikiki_kiki/scraps/3d67d4e11c93ac
+
 ## Reply with GAS
 
 ## Generate reply with Gemini AI
