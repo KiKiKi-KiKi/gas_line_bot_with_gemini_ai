@@ -23,6 +23,12 @@ async function doPost(e) {
   const messageText = json.events[0].message.text;
   const userID = json.events[0]?.source.userId;
 
+  // Get user's location
+  // WARNING: location data become `undefined` when type is not `location`
+  const longitude = json.events[0]?.message.longitude;
+  const latitude = json.events[0]?.message.latitude;
+  const address = json.events[0]?.message.address;
+
   if (!replyToken || typeof replyToken === "undefined") {
     return;
   }
@@ -32,9 +38,14 @@ async function doPost(e) {
     showLoading({ userID });
   }
 
-  // Ask Gemini
-  const answerText = await askGemini({
-    prompt: messageText,
+  const relyText = await getReplyText({
+    messageText,
+    position: {
+      longitude,
+      latitude,
+      address,
+    },
+    isLocation: messageType === "location",
   });
 
   // Reply
@@ -49,7 +60,7 @@ async function doPost(e) {
       messages: [
         {
           type: "text",
-          text: answerText,
+          text: relyText,
         },
       ],
     }),
@@ -81,6 +92,27 @@ const showLoading = ({ userID }) => {
   UrlFetchApp.fetch(LINE_CHAT_LOADING_API, option);
 };
 
+// Get Reply Text
+const getReplyText = async ({ messageText, position, isLocation }) => {
+  // Search Station
+  if (isLocation) {
+    const { longitude, latitude, address } = position;
+
+    return `この場所の緯度と経度
+    緯度: ${latitude}
+    軽度: ${longitude}
+    住所: ${address}`;
+  }
+
+  // Ask Gemini
+  const answerText = await askGemini({
+    prompt: messageText,
+  });
+
+  return answerText;
+};
+
+// ASK Gemini
 const askGemini = async ({ prompt }) => {
   if (!prompt || prompt.length < 3) {
     return "回答できませんでした";
