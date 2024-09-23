@@ -56,9 +56,13 @@ async function doPost(e) {
   };
 
   // POST message
-  UrlFetchApp.fetch(LINE_REPLY_API, option);
-
-  return;
+  try {
+    UrlFetchApp.fetch(LINE_REPLY_API, option);
+    return;
+  } catch (error) {
+    console.log(error);
+    return "error";
+  }
 }
 
 const showLoading = ({ userID }) => {
@@ -101,10 +105,15 @@ const askGemini = async ({ prompt }) => {
     }),
   };
 
-  const res = UrlFetchApp.fetch(GEMINI_API, options);
-  const json = JSON.parse(res.getContentText());
-  // console.log(json.candidates[0].content.parts);
-  const text = json.candidates[0].content.parts[0].text;
+  try {
+    const res = UrlFetchApp.fetch(GEMINI_API, options);
+    const json = JSON.parse(res.getContentText());
+    // console.log(json.candidates[0].content.parts);
+    const text = json.candidates[0].content.parts[0].text;
 
-  return text ?? "回答できませんでした";
+    return text ?? "回答できませんでした";
+  } catch (error) {
+    console.log(`askGemini`, error);
+    return "回答できませんでした";
+  }
 };
